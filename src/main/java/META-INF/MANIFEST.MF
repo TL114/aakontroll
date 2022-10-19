@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+com.github.tl114.aakontroll.Main-Class: com.github.tl114.aakontroll.GUI
+
