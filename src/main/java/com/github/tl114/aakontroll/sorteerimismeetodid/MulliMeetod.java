@@ -4,7 +4,6 @@ public class MulliMeetod extends SorteerimisMeetod {
 
     public MulliMeetod(int[] järjend) {
         super(järjend);
-        super.salvestaSeis();
     }
 
     @Override
@@ -16,6 +15,5 @@ public class MulliMeetod extends SorteerimisMeetod {
                 getJärjend()[i] = temp;
             }
         }
-        super.salvestaSeis();
     }
 }

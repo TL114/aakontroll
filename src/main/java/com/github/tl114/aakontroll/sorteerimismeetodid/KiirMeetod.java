@@ -143,8 +143,6 @@ public class KiirMeetod extends SorteerimisMeetod {
     }
 
     private class Salvestus {
-        private final LinkedList<int[]> järjendiSalvestus = new LinkedList<>();
-
         //Kiirmeetod
         private final LinkedList<LinkedList<Pair<Integer, Integer>>> vasakOsadSalvestus = new LinkedList<>();
         private final LinkedList<LinkedList<Pair<Integer, Integer>>> paremOsadSalvestus = new LinkedList<>();
@@ -155,7 +153,6 @@ public class KiirMeetod extends SorteerimisMeetod {
         private final LinkedList<Integer> laheSalvestus = new LinkedList<>();
 
         private void salvesta() {
-            järjendiSalvestus.push(getJärjend().clone());
             if (valikuKiirmeetod) {
                 valikuKiirMeetodSalvesta();
             } else {
@@ -179,31 +176,27 @@ public class KiirMeetod extends SorteerimisMeetod {
         }
 
         private void valikuKiirMeetodSammTagasi() {
-            if (järjendiSalvestus.size() > 1) {
-                järjendiSalvestus.pop();
+            if (algusSalvestus.size() > 1) {
                 algusSalvestus.pop();
                 lõppSalvestus.pop();
                 laheSalvestus.pop();
             }
-            setJärjend(järjendiSalvestus.getFirst());
             algus = algusSalvestus.getFirst();
             lõpp = lõppSalvestus.getFirst();
             lahe = laheSalvestus.getFirst();
         }
 
         private void kiirMeetodSalvesta() {
-            vasakOsadSalvestus.push(vasakOsad);
-            paremOsadSalvestus.push(paremOsad);
+            vasakOsadSalvestus.push((LinkedList<Pair<Integer, Integer>>) vasakOsad.clone());
+            paremOsadSalvestus.push((LinkedList<Pair<Integer, Integer>>) paremOsad.clone());
         }
 
         private void kiirMeetodSammTagasi() {
-            if (järjendiSalvestus.size() > 1) {
-                järjendiSalvestus.pop();
+            if (vasakOsadSalvestus.size() > 1) {
                 vasakOsadSalvestus.pop();
                 paremOsadSalvestus.pop();
 
             }
-            setJärjend(järjendiSalvestus.getFirst());
             vasakOsad = vasakOsadSalvestus.getFirst();
             paremOsad = paremOsadSalvestus.getFirst();
         }

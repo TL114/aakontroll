@@ -29,12 +29,13 @@ import java.util.*;
 
 public class GUI extends Application {
 
-    private static final VBox kasutajaSisendid = new VBox(); //Siia salvestatakse kasutaja sisendid ja nende kontroll, et seda hiljem kuvada.
+    private final VBox sisendiKontrollid = new VBox(); //Siia salvestatakse kasutaja sisendid ja nende kontroll, et seda hiljem kuvada.
+    private final LinkedList<int[]> sisendiSalvestus = new LinkedList<>();
 
-    private static int tooEtte = 0;
-    private static String failiNimi = "";
+    private int tooEtte = 0;
+    private String failiNimi;
 
-    private static SorteerimisMeetod sorteerimisMeetod;
+    private SorteerimisMeetod sorteerimisMeetod;
 
     public static void main(String[] args) {
         launch(args);
@@ -62,19 +63,13 @@ public class GUI extends Application {
      Meetod, mis saab ette faili kausttee ning valib sealt ühe suvalise rea
      ning muudab selle täisarvujärjendiks
      */
-    private int[] valiSuvalineJärjendFailist(String kaustTee) {
+    private int[] valiSuvalineJärjendFailist(String kaustTee) throws IOException {
         List<String> read = new ArrayList<>();
         try (FileReader reader = new FileReader(kaustTee); BufferedReader br = new BufferedReader(reader)) {
             String rida;
             while ((rida = br.readLine()) != null) {
                 read.add(rida);
             }
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Viga");
-            alert.setHeaderText(null);
-            alert.setContentText("Vigane fail.");
-            alert.showAndWait();
         }
         return ridaJärjendiks(read.get(new Random().nextInt(read.size())));
     }
@@ -100,33 +95,14 @@ public class GUI extends Application {
     /*
      Meetod, mis saab kasutaja käest kätte meetodinime, ning seejärel valib õigest failist ühe suvalise järjendi
      */
-    private int[] järjendFailist(String kaustTee, boolean valikuKiirmeetod) {
-        try {
-            if (valikuKiirmeetod) {
-                String rida = ridaFailistTooEtte(kaustTee);
-                String[] tükid = rida.split(";");
-                tooEtte = Integer.parseInt(tükid[1]);
-                return ridaJärjendiks(tükid[0]);
-            }
-        } catch (Exception e) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Viga");
-            alert.setHeaderText(null);
-            alert.setContentText("Valiku kiirmeetodi sisend peab olema kujul: [Järjend];Arv, kus arv näitab kui mitu väiksemat ette tuuakse.");
-            alert.showAndWait();
+    private int[] järjendFailist(String kaustTee, boolean valikuKiirmeetod) throws IOException {
+        if (valikuKiirmeetod) {
+            String rida = ridaFailistTooEtte(kaustTee);
+            String[] tükid = rida.split(";");
+            tooEtte = Integer.parseInt(tükid[1]);
+            return ridaJärjendiks(tükid[0]);
         }
-
         return valiSuvalineJärjendFailist(kaustTee);
-    }
-
-    /*
-     Meetod, mis viib programmi tagasi algseisu.
-     Faili nimi jäetakse alles.
-     */
-    private void taastaAlgSeisund(String kaustTee) {
-        kasutajaSisendid.getChildren().clear();
-        failiNimi = kaustTee;
-        tooEtte = 0;
     }
 
     /*
@@ -246,8 +222,8 @@ public class GUI extends Application {
         popUp.setMinHeight(400);
         BorderPane layOut = new BorderPane();
         layOut.setPadding(new Insets(15, 15, 15, 15));
-        VBox vBox = new VBox();
-        vBox.getChildren().addAll(kasutajaSisendid.getChildren());
+        VBox vBox = new VBox(10);
+        vBox.getChildren().addAll(sisendiKontrollid.getChildren());
         layOut.setLeft(vBox);
         popUp.initModality(Modality.APPLICATION_MODAL);
         popUp.setTitle("Tulemus");
@@ -277,13 +253,15 @@ public class GUI extends Application {
     }
 
     private void salvestaKasutajaSisend(int[] korrektneSisend, int[] sisendJärjend) {
+        sisendiSalvestus.push(sisendJärjend.clone());
+
         Text sisendiTekst = new Text("Sisestatud järjend: ");
         sisendiTekst.setFont(new Font(15));
         Text kontrolliTekst = new Text("Algoritmi samm: ");
         kontrolliTekst.setFont(new Font(15));
 
         GridPane gp = new GridPane();
-        gp.setHgap(8);
+        gp.setHgap(5);
         gp.add(sisendiTekst, 0, 0);
         gp.add(kontrolliTekst, 0, 1);
         gp.getColumnConstraints().add(new ColumnConstraints(120));
@@ -309,7 +287,7 @@ public class GUI extends Application {
         }
         gp.add(sisend, 1, 0);
         gp.add(korrektne, 1, 1);
-        kasutajaSisendid.getChildren().add(gp);
+        sisendiKontrollid.getChildren().add(gp);
     }
 
     private SorteerimisMeetod valiMeetod(String meetodiNimi, int[] järjend) {
@@ -343,6 +321,13 @@ public class GUI extends Application {
                 meetod = new PõimeMeetod(true, järjend);
         }
         return meetod;
+    }
+
+    private void sammTagasi() {
+        if (sisendiSalvestus.size() > 1) {
+            sisendiSalvestus.pop();
+        }
+        sorteerimisMeetod.setJärjend(sisendiSalvestus.getFirst().clone());
     }
 
     @Override
@@ -446,6 +431,7 @@ public class GUI extends Application {
                 if (lahendatavJärjend.length == 0) {
                     throw new IllegalArgumentException();
                 }
+                sisendiSalvestus.push(lahendatavJärjend.clone());
                 sorteerimisMeetod = valiMeetod(meetodiNimi, lahendatavJärjend);
 
                 VBox looKasutajaSisend = looKasutajaSisendVaade(lahendatavJärjend, lukuNupud);
@@ -468,17 +454,11 @@ public class GUI extends Application {
                 primaryStage.setWidth(lahendatavJärjend.length * 80 + 250);
             }
             //Kui kasutajal ei ole vajalikke faile antakse talle sellest dialoogiga teada
-            catch (NumberFormatException e) {
+            catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Viga");
                 alert.setHeaderText(null);
-                alert.setContentText("Järjendis leidub sümbol mis ei ole number.");
-                alert.showAndWait();
-            } catch (IllegalArgumentException e) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Viga");
-                alert.setHeaderText(null);
-                alert.setContentText("Järjendis pole elemente.");
+                alert.setContentText("Viga sisendfailis.");
                 alert.showAndWait();
             }
         });
@@ -487,8 +467,8 @@ public class GUI extends Application {
          Funktsioon mis laseb kasutajal taastada programmi algseisu ilma tulemusfaili loomata
          */
         tagasi.setOnAction(e -> {
-            taastaAlgSeisund(failiVäli.getText());
             GUI app = new GUI();
+            app.failiNimi = failiVäli.getText();
             app.start(primaryStage);
             primaryStage.setWidth(250);
         });
@@ -569,7 +549,10 @@ public class GUI extends Application {
 
             ((RadioButton) toggleGroup.getSelectedToggle()).setStyle("-fx-text-fill: grey");
             sorteerimisMeetod.sammTagasi();
-            kasutajaSisendid.getChildren().remove(kasutajaSisendid.getChildren().size() - 1);
+            sammTagasi();
+            if (!sisendiKontrollid.getChildren().isEmpty()) {
+                sisendiKontrollid.getChildren().remove(sisendiKontrollid.getChildren().size() - 1);
+            }
 
             try {
                 for (int i = 0; i < sorteerimisMeetod.getJärjend().length; i++) {
@@ -625,9 +608,9 @@ public class GUI extends Application {
          */
         lõpeta.setOnAction(actionEvent -> {
             GUI app = new GUI();
+            app.failiNimi = failiVäli.getText();
             app.start(primaryStage);
             kuvaTulemus();
-            taastaAlgSeisund(failiVäli.getText());
             primaryStage.setWidth(250);
         });
     }

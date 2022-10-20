@@ -44,6 +44,7 @@ public class PõimeMeetod extends SorteerimisMeetod {
         } else {
             põimeMeetodJärgmineSamm();
         }
+        salvestaSeis();
     }
 
     private void altÜlesseJärgmineSamm() {
@@ -68,8 +69,10 @@ public class PõimeMeetod extends SorteerimisMeetod {
             } else {
                 põimiMassiiviOsa(algus, lõpp);
                 töötlemataOsa -= iteratsiooniSuurus;
+                if (töötlemataOsa == 0) {
+                    töödeldud = true;
+                }
             }
-            salvestus.salvesta();
             algus += iteratsiooniSuurus;
             lõpp += iteratsiooniSuurus;
         }
@@ -85,7 +88,6 @@ public class PõimeMeetod extends SorteerimisMeetod {
         } else {
             poolitaJärjendiOsa();
         }
-        salvestus.salvesta();
     }
 
     private void põimi() {
@@ -94,13 +96,12 @@ public class PõimeMeetod extends SorteerimisMeetod {
         }
         Pair<Integer, Integer> põimitavOsa = põimiOsad.pop();
         põimiMassiiviOsa(põimitavOsa.getKey(), põimitavOsa.getValue());
-        if (paremOsad.isEmpty()) {
-            return;
-        }
-        Pair<Integer, Integer> järgmineOsa = paremOsad.getFirst();
-        Pair<Integer, Integer> järgminePõimitav = põimiOsad.getFirst();
-        if (järgmineOsa.getValue() - järgmineOsa.getKey() < järgminePõimitav.getValue() - järgminePõimitav.getKey()) {
-            põimi = false;
+        if (!paremOsad.isEmpty()) {
+            Pair<Integer, Integer> järgmineOsa = paremOsad.getFirst();
+            Pair<Integer, Integer> järgminePõimitav = põimiOsad.getFirst();
+            if (järgmineOsa.getValue() - järgmineOsa.getKey() < järgminePõimitav.getValue() - järgminePõimitav.getKey()) {
+                põimi = false;
+            }
         }
     }
 
@@ -130,7 +131,9 @@ public class PõimeMeetod extends SorteerimisMeetod {
         if (algus != lõpp) {
             põimiOsad.push(new Pair<>(algus, lõpp));
         }
-        põimi = vasakOsad.isEmpty() && töödeldakseParemat;
+        if ((algus == vasakLõpp && paremAlgus == lõpp && algus != lõpp)) {
+            põimi = true;
+        }
     }
 
     public void põimiMassiiviOsa(int algus, int lõpp) {
@@ -184,8 +187,6 @@ public class PõimeMeetod extends SorteerimisMeetod {
     }
 
     private class Salvestus {
-        private final LinkedList<int[]> järjendiSalvestus = new LinkedList<>();
-
         //Alt-Ülesse
         private final LinkedList<Integer> iteratsioonSalvestus = new LinkedList<>();
         private final LinkedList<Integer> töötlemataOsaSalvestus = new LinkedList<>();
@@ -196,10 +197,9 @@ public class PõimeMeetod extends SorteerimisMeetod {
         private final LinkedList<LinkedList<Pair<Integer, Integer>>> vasakOsadSalvestus = new LinkedList<>();
         private final LinkedList<LinkedList<Pair<Integer, Integer>>> paremOsadSalvestus = new LinkedList<>();
         private final LinkedList<LinkedList<Pair<Integer, Integer>>> põimiOsadSalvestus = new LinkedList<>();
+        private final LinkedList<Boolean> põimiSalvestus = new LinkedList<>();
 
         private void salvesta() {
-            järjendiSalvestus.push(getJärjend().clone());
-
             if (altÜlesse) {
                 salvestaAltÜlesse();
             } else {
@@ -215,9 +215,10 @@ public class PõimeMeetod extends SorteerimisMeetod {
         }
 
         private void salvestaPõimeMeetod() {
-            vasakOsadSalvestus.push(vasakOsad);
-            paremOsadSalvestus.push(paremOsad);
-            põimiOsadSalvestus.push(põimiOsad);
+            vasakOsadSalvestus.push((LinkedList<Pair<Integer, Integer>>) vasakOsad.clone());
+            paremOsadSalvestus.push((LinkedList<Pair<Integer, Integer>>) paremOsad.clone());
+            põimiOsadSalvestus.push((LinkedList<Pair<Integer, Integer>>) põimiOsad.clone());
+            põimiSalvestus.push(põimi);
         }
 
         private void sammTagasi() {
@@ -229,28 +230,25 @@ public class PõimeMeetod extends SorteerimisMeetod {
         }
 
         private void sammTagasiPõimeMeetod() {
-            if (järjendiSalvestus.size() > 1) {
-                järjendiSalvestus.pop();
+            if (vasakOsadSalvestus.size() > 1) {
                 vasakOsadSalvestus.pop();
                 paremOsadSalvestus.pop();
                 põimiOsadSalvestus.pop();
+                põimiSalvestus.pop();
             }
-            setJärjend(järjendiSalvestus.getFirst());
             vasakOsad = vasakOsadSalvestus.getFirst();
             paremOsad = paremOsadSalvestus.getFirst();
             põimiOsad = põimiOsadSalvestus.getFirst();
+            põimi = põimiSalvestus.getFirst();
         }
 
         private void sammTagasiAltÜlesse() {
-            if (järjendiSalvestus.size() > 1) {
-                järjendiSalvestus.pop();
+            if (iteratsioonSalvestus.size() > 1) {
                 iteratsioonSalvestus.pop();
                 töötlemataOsaSalvestus.pop();
                 algusSalvestus.pop();
                 lõppSalvestus.pop();
             }
-
-            setJärjend(järjendiSalvestus.getFirst());
             iteratsioon = iteratsioonSalvestus.getFirst();
             töötlemataOsa = töötlemataOsaSalvestus.getFirst();
             algus = algusSalvestus.getFirst();

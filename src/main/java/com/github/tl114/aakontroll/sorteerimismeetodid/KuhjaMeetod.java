@@ -12,7 +12,7 @@ public class KuhjaMeetod extends SorteerimisMeetod {
     public KuhjaMeetod(boolean kuhjasta, int[] järjend) {
         super(järjend);
         this.kuhjasta = kuhjasta;
-        viimaneTipp = Math.floorDiv(getJärjend().length, 2);
+        viimaneTipp = Math.floorDiv(getJärjend().length, 2) - 1;
     }
 
     public void järgmineSamm() {
@@ -21,7 +21,6 @@ public class KuhjaMeetod extends SorteerimisMeetod {
         } else {
             kuhjaMeetodilJärjestamiseSamm();
         }
-        super.salvestaSeis();
     }
 
     private void kuhjastaSamm() {
@@ -100,7 +99,6 @@ public class KuhjaMeetod extends SorteerimisMeetod {
                 töödeldudOsa--;
             }
         }
-        super.sammTagasi();
     }
 
     private int vasak(int indeks) {

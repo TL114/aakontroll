@@ -19,16 +19,13 @@ public class PisteMeetod extends SorteerimisMeetod {
             int[] töödeldavOsa = Arrays.copyOfRange(getJärjend(), 0, sorteeritud + 1);
             Arrays.sort(töödeldavOsa);
             setJärjend(ArrayUtils.addAll(töödeldavOsa, Arrays.copyOfRange(getJärjend(), sorteeritud + 1, getJärjend().length)));
-            super.salvestaSeis();
             sorteeritud++;
-            System.out.println(Arrays.toString(getJärjend()));
         }
     }
 
     @Override
     public void sammTagasi() {
         if (sorteeritud > 0) {
-            super.sammTagasi();
             sorteeritud--;
         }
     }

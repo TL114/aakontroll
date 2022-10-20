@@ -30,7 +30,6 @@ public class ValikuMeetod extends SorteerimisMeetod {
             vahetaElemendid(minIndeks);
         }
         töödeldud++;
-        super.salvestaSeis();
     }
 
     private void vahetaElemendid(int indeks) {
@@ -42,7 +41,6 @@ public class ValikuMeetod extends SorteerimisMeetod {
     @Override
     public void sammTagasi() {
         if (töödeldud > 0) {
-            super.sammTagasi();
             töödeldud--;
         }
     }
